@@ -1,6 +1,7 @@
 ---
 name: catalog-search
-description: Search the University of Chicago Library catalog (VuFind) and enrich results beyond the record — WikiData author context, Internet Archive full-text badges for public-domain works, verify-first Project Gutenberg / IA discovery when the badge misses, optional PubMed topic evidence, and HathiTrust/HTRC Extracted Features content fingerprints (what an in-copyright book is about from word statistics, not readable text). Use for catalog holdings asks, "does the library have X by Y", narrowing by format/year/language, author context, pulling/summarizing public-domain full text, or "what does this book cover / what is it about" when full text is unavailable (HathiTrust search-only). Default catalog: https://catalog.lib.uchicago.edu/vufind (HTTP steps; no Python/venv required).
+description: >-
+  Search the University of Chicago Library catalog (VuFind) and enrich results beyond the record — WikiData author context, Internet Archive full-text badges for public-domain works, verify-first Project Gutenberg / IA discovery when the badge misses, optional PubMed topic evidence, and HathiTrust/HTRC Extracted Features content fingerprints (what an in-copyright book is about from word statistics, not readable text). Use for catalog holdings asks, "does the library have X by Y", narrowing by format/year/language, author context, pulling/summarizing public-domain full text, or "what does this book cover / what is it about" when full text is unavailable (HathiTrust search-only). Default catalog: https://catalog.lib.uchicago.edu/vufind (HTTP steps; no Python/venv required).
 ---
 
 # catalog-search (Lib-Skills)
