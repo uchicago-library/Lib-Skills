@@ -1,6 +1,6 @@
 ---
 name: catalog-search
-description: Search the University of Chicago Library catalog (VuFind) and enrich the results with data the catalog itself can't surface — author context from WikiData (one-line bio, "also wrote", VIAF) and a "full text available" badge for public-domain titles whose full OCR text can be pulled on demand from the Internet Archive to read, summarize, or answer questions about. Use when the user wants to find books/items in the UChicago Library or catalog, look up holdings by title/author/subject/ISBN, narrow a search by format/year/language, learn more about an item's author, or read/summarize/ask questions about the full text of a public-domain book the library holds. Handles natural-language queries ("books on X since 2015", "what else did this author write", "pull the full text of #2 and summarize it"). Default catalog: https://dldc2.lib.uchicago.edu/vufind (HTTP steps; no Python required).
+description: Search the University of Chicago Library catalog (VuFind) and enrich the results with data the catalog itself can't surface — author context from WikiData (one-line bio, "also wrote", VIAF) and a "full text available" badge for public-domain titles whose full OCR text can be pulled on demand from the Internet Archive to read, summarize, or answer questions about. Use when the user wants to find books/items in the UChicago Library or catalog, look up holdings by title/author/subject/ISBN, narrow a search by format/year/language, learn more about an item's author, or read/summarize/ask questions about the full text of a public-domain book the library holds. Handles natural-language queries ("books on X since 2015", "what else did this author write", "pull the full text of #2 and summarize it"). Default catalog: https://catalog.lib.uchicago.edu/vufind (HTTP steps; no Python required).
 ---
 
 # catalog-search (Lib-Skills)
@@ -42,14 +42,14 @@ text for an item that didn't earn the badge (see *Honesty* below).
 
 | Key | Default | Notes |
 |---|---|---|
-| `catalog_base` | `https://dldc2.lib.uchicago.edu/vufind` | UChicago default |
+| `catalog_base` | `https://catalog.lib.uchicago.edu/vufind` | UChicago default |
 | `probe_depth_n` | `5` | Top-N results to annotate eagerly |
 | `contact_email` | *(optional)* | Include in User-Agent for public APIs when known |
 | `http_timeout` | ~20s | Soft; fail-soft on timeout |
 | `fulltext_timeout` | ~90s | For large OCR/plaintext pulls |
 
 **Origin** for permalinks: scheme + host of `catalog_base` (e.g.
-`https://dldc2.lib.uchicago.edu`). Permalink = `origin` + `recordPage` — *not*
+`https://catalog.lib.uchicago.edu`). Permalink = `origin` + `recordPage` — *not*
 base + `recordPage` (`recordPage` already includes `/vufind`).
 
 **User-Agent:** send a descriptive agent string; if `contact_email` is set,

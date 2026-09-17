@@ -51,7 +51,7 @@ parity without a developer setup. It does **not** replace Lib-Bot.
 3. No Python, no venv, no `config.json` file is required. Defaults are baked into
    the skill:
 
-   - **`catalog_base`:** `https://dldc2.lib.uchicago.edu/vufind`
+   - **`catalog_base`:** `https://catalog.lib.uchicago.edu/vufind`
    - **`probe_depth_n`:** `5`
    - **`contact_email`:** optional (add to User-Agent when calling public APIs)
 

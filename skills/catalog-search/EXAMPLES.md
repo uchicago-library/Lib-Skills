@@ -17,7 +17,7 @@ Python CLI invocations replaced by agent HTTP behavior.
 | htrc | HathiTrust Bib-API “content analysis available” badge where joined |
 | limit | Cap `limit` on search |
 
-**Default `catalog_base`:** `https://dldc2.lib.uchicago.edu/vufind`
+**Default `catalog_base`:** `https://catalog.lib.uchicago.edu/vufind`
 
 *(Catalog search needs VPN / campus reachability. Enrichment demos below that
 only hit public APIs still prove badges without the catalog.)*
