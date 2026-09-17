@@ -1,7 +1,18 @@
 ---
 name: catalog-search
 description: >-
-  Search the University of Chicago Library catalog (VuFind) and enrich results beyond the record — WikiData author context, Internet Archive full-text badges for public-domain works, verify-first Project Gutenberg / IA discovery when the badge misses, optional PubMed topic evidence, and HathiTrust/HTRC Extracted Features content fingerprints (what an in-copyright book is about from word statistics, not readable text). Use for catalog holdings asks, "does the library have X by Y", narrowing by format/year/language, author context, pulling/summarizing public-domain full text, or "what does this book cover / what is it about" when full text is unavailable (HathiTrust search-only). Default catalog: https://catalog.lib.uchicago.edu/vufind (HTTP steps; no Python/venv required).
+  Search the University of Chicago Library catalog (VuFind) and enrich beyond
+  the record: WikiData author context; Internet Archive full-text badges;
+  verify-first Project Gutenberg / IA discovery; PubMed topic evidence for
+  biomedical/clinical questions (recent reviews, MeSH, sample papers alongside
+  library holdings); HathiTrust/HTRC content fingerprints for in-copyright
+  works. Use when the user asks about library holdings, "does the library have
+  X by Y", books on a topic, narrowing by format/year/language, author context,
+  public-domain full text, "what does this book cover" (HathiTrust search-only),
+  or biomedical / health evidence such as "I'm reviewing type 2 diabetes
+  treatments — what's the recent evidence?", CRISPR, Alzheimer disease, or
+  other clinical topics (catalog first, then PubMed). Default catalog:
+  https://catalog.lib.uchicago.edu/vufind (HTTP steps; no Python/venv).
 ---
 
 # catalog-search (Lib-Skills)
@@ -36,7 +47,10 @@ exactly. Higher token use is fine.
 - Specific-title holdings asks with no full-text badge → still run findtext
   (users won’t usually add “I’d like to read it”).
 - "What is this book about / what does it cover?" when full text is unavailable (HathiTrust search-only / in-copyright) — HTRC EF fingerprint via HTTP.
-- Biomedical topic evidence via PubMed (opt-in when clinical/biological).
+- Biomedical / clinical / health "recent evidence" asks (e.g. type 2 diabetes
+  treatments, CRISPR, Alzheimer) → **this skill**: catalog subject search +
+  PubMed `topicEvidence` (catalog first, PubMed second). Do not skip to a
+  generic PubMed-only answer.
 
 Do **not** use this skill for live FOLIO checkout availability, or to claim full
 text for an item that didn't earn the badge (see *Honesty* below).

@@ -183,6 +183,9 @@ same action label as Lib-Bot.
 
 **Ask:** "I'm reviewing type 2 diabetes treatments — what's the recent evidence?"
 
+(This **is** catalog-search — biomedical evidence + library holdings together.
+Do not skip the skill for a generic PubMed answer.)
+
 **Agent should:** Subject search `type 2 diabetes`, `limit=5`, plus PubMed
 esearch/efetch; attach `topicEvidence` only if total ≥ **50**.
 
