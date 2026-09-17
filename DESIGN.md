@@ -72,28 +72,21 @@ version:
 
 ## Conscious parity gaps
 
-### HTRC analyze (primary gap)
+### HTRC analyze (HTTP path; no venv)
 
-Lib-Bot’s `analyze.py` uses `htrc-feature-reader` to download Extracted Features
-(2025.04 stubbytree) and compute POS-filtered:
+Lib-Bot’s `analyze.py` uses `htrc-feature-reader` as a convenience. The same
+2025.04 EF files are public over HTTPS at stubbytree paths under
+`https://data.analytics.hathitrust.org/features-2025.04/…/*.json.bz2`. Lib-Skills
+documents that recipe + POS aggregation in `SKILL.md` §5 (no Python package).
 
-- `topThemes` — common nouns (`NN`/`NNS`)
-- `topNames` — proper nouns (`NNP`/`NNPS`)
-
-Lib-Skills **can** still:
-
-- Run the HathiTrust **Bib API** join and attach the same inline badge shape
-  (`contentAnalysis`, `htid`, `rights`, `readUrl`, `actions[].content_analysis`)
-- Extract `htid` from a user-supplied HathiTrust URL
-- Offer `readUrl` = `https://babel.hathitrust.org/cgi/pt?id={htid}`
+**Works in Cowork when** the harness can download bz2, decompress, and aggregate
+token/POS counts **off-context**. Chat-only / no sandbox → honest refusal +
+`readUrl` / Bib-API rights / optional metadata URL.
 
 Lib-Skills **must not**:
 
-- Never invent `topThemes` or `topNames`
-- Claim a vocabulary fingerprint when EF were not obtained
-
-If the harness cannot obtain EF, say so honestly and stop — badge + `readUrl` +
-rights are enough.
+- Invent `topThemes` / `topNames` or guess pairtree / fake EF URLs
+- Claim a fingerprint when EF were not obtained
 
 ### Determinism
 
@@ -116,7 +109,7 @@ WorldCat, OpenSyllabus, FOLIO live availability — out of scope here too.
 | WikiData | `enrichers/wikidata.py` | SKILL §3a |
 | OL→IA badge + pull | `enrichers/openlibrary_ia.py` | SKILL §3b, §4 |
 | HathiTrust badge | `enrichers/hathitrust.py` `probe` | SKILL §3c |
-| HTRC analyze | `enrichers/hathitrust.py` `analyze` | SKILL §5 (gap) |
+| HTRC analyze | `enrichers/hathitrust.py` `analyze` | SKILL §5 (stubbytree HTTPS) |
 | PubMed | `enrichers/pubmed.py` | SKILL §3d |
 | Findtext | `enrichers/public_fulltext.py` | SKILL §4b |
 | Fulltext CLI | `fulltext.py` | SKILL §4 |

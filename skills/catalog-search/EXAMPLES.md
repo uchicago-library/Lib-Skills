@@ -146,21 +146,24 @@ as search-only, so I can't read the text."
 
 **Agent should:**
 
-1. Obtain HTID from user URL
+1. This ask **is** catalog-search (HTRC fingerprint) — do not skip the skill.
+2. Obtain HTID: user URL
    `https://babel.hathitrust.org/cgi/pt?id=uc1.31822031154305` or
-   `htid=uc1.31822031154305`.
-2. Prefer: fetch HTRC Extracted Features (harness tooling /
-   `htrc-feature-reader` if available) → compute `topThemes` / `topNames`.
-3. If features **cannot** be obtained: say so honestly; still offer `readUrl` and
-   Bib-API rights if known — **never invent themes**. This is the documented
-   Lib-Skills gap vs Lib-Bot.
+   `htid=uc1.31822031154305` (or Bib-API join if only a catalog record).
+3. Optional: metadata
+   `GET …/extracted-features/20250321/uc1.31822031154305` (`Accept: application/json`).
+4. Download EF bz2 via stubbytree HTTPS (SKILL §5):
+   `…/features-2025.04/uc1/32350/uc1.31822031154305.json.bz2` — decompress and
+   aggregate **off-context** (tool/sandbox). Do not paste the whole JSON into
+   chat.
+5. Present vocabulary profile + `readUrl`. If decompress/aggregate is impossible:
+   honest refusal + `readUrl` — **never invent themes**.
 
-- **Shows:** complement to #4 — in-copyright fingerprint from non-consumptive
-  stats when features are available; honest refusal when not.
-- **Look for (when EF works):** themes like *science, **paradigm**, theory,
-  research*; names *Newton, Lavoisier, Galileo, Einstein* — presented as a
-  statistical profile. Alt HTIDs for PD demos: `njp.32101075725117`,
-  `nyp.33433042068894`.
+- **Shows:** in-copyright fingerprint over plain HTTP (no venv); fail-soft when
+  the harness cannot bunzip/aggregate.
+- **Look for:** themes like *science, **paradigm**, theory, research*; names
+  *Newton, Lavoisier, Galileo, Einstein* — statistical profile, not a read
+  summary. Alt HTIDs: `njp.32101075725117`, `nyp.33433042068894`.
 
 **The honest miss (catalog auto-join):**
 

@@ -1,6 +1,6 @@
 ---
 name: catalog-search
-description: Search the University of Chicago Library catalog (VuFind) and enrich the results with data the catalog itself can't surface — author context from WikiData (one-line bio, "also wrote", VIAF) and a "full text available" badge for public-domain titles whose full OCR text can be pulled on demand from the Internet Archive to read, summarize, or answer questions about. Use when the user wants to find books/items in the UChicago Library or catalog, look up holdings by title/author/subject/ISBN, narrow a search by format/year/language, learn more about an item's author, or read/summarize/ask questions about the full text of a public-domain book the library holds. Handles natural-language queries ("books on X since 2015", "what else did this author write", "pull the full text of #2 and summarize it"). Default catalog: https://catalog.lib.uchicago.edu/vufind (HTTP steps; no Python required).
+description: Search the University of Chicago Library catalog (VuFind) and enrich results beyond the record — WikiData author context, Internet Archive full-text badges for public-domain works, verify-first Project Gutenberg / IA discovery when the badge misses, optional PubMed topic evidence, and HathiTrust/HTRC Extracted Features content fingerprints (what an in-copyright book is about from word statistics, not readable text). Use for catalog holdings asks, "does the library have X by Y", narrowing by format/year/language, author context, pulling/summarizing public-domain full text, or "what does this book cover / what is it about" when full text is unavailable (HathiTrust search-only). Default catalog: https://catalog.lib.uchicago.edu/vufind (HTTP steps; no Python/venv required).
 ---
 
 # catalog-search (Lib-Skills)
@@ -34,7 +34,7 @@ exactly. Higher token use is fine.
 - "The catalog only has a reprint — find free full text" (verify-first).
 - Specific-title holdings asks with no full-text badge → still run findtext
   (users won’t usually add “I’d like to read it”).
-- "What is this in-copyright book about?" (HTRC fingerprint **only if** EF exist).
+- "What is this book about / what does it cover?" when full text is unavailable (HathiTrust search-only / in-copyright) — HTRC EF fingerprint via HTTP.
 - Biomedical topic evidence via PubMed (opt-in when clinical/biological).
 
 Do **not** use this skill for live FOLIO checkout availability, or to claim full
@@ -427,11 +427,19 @@ Output shape:
 
 ---
 
-### 5 — Act: HTRC content analysis (in-copyright OK; conscious gap)
+### 5 — Act: HTRC content analysis (in-copyright OK; HTTP, no venv)
 
-Complement to full text: theme + named-entity **fingerprint** from Extracted
-Features (non-consumptive). Use when the user asks what a book covers and there
-is no public full text.
+Complement to full text: theme + named-entity **fingerprint** from HTRC
+Extracted Features (non-consumptive page-level token/POS counts — **not**
+readable text). Use when the user asks what a book covers / is about and there
+is no public full text (HathiTrust search-only, in-copyright, etc.).
+
+**No Python package.** Do **not** invent pairtree URLs or guess EF hosts. Use
+the stubbytree HTTPS recipe below (same files Lib-Bot’s `htrc-feature-reader`
+would fetch). Prefer a harness **tool/sandbox** to download + bunzip + aggregate
+**off-context**; only bring the tiny `topThemes` / `topNames` lists into the
+reply. If the harness cannot decompress/aggregate, say so honestly — still offer
+`readUrl` (+ Bib-API rights / metadata). **Never invent themes or names.**
 
 **Getting `htid`:**
 
@@ -439,30 +447,63 @@ is no public full text.
 2. From user HathiTrust URL (`pt?id=` query param, or `hdl.handle.net/2027/<htid>`), or
 3. Catalog→Bib API join (same as badge) — honest miss ~7/8 → ask for HTID/URL
 
-**Lib-Bot ideal path:** `htrc-feature-reader` downloads EF and computes
-POS-filtered common nouns (`topThemes`, top 20) and proper nouns (`topNames`,
-top 15), dropping a small English stop list for themes.
+Optional lightweight check (metadata only — **not** enough for themes):
 
-**Lib-Skills harness path:**
+```
+GET https://data.analytics.hathitrust.org/extracted-features/20250321/{htid}
+Accept: application/json
+```
 
-1. If the harness can run `htrc-feature-reader` / equivalent → emit the same
-   report shape.
-2. Else try a known-public EF path for the HTID **only if** you can actually
-   fetch and parse it.
-3. Else ask the user for HTID/URL and any EF file they can provide.
-4. **If features cannot be obtained: say so honestly.** Never invent `topThemes`
-   or `topNames`. You may still offer `readUrl` =
-   `https://babel.hathitrust.org/cgi/pt?id={htid}` and rights from the Bib API.
+Returns small JSON (`title`, `accessRights`, `numPages`, …). Confirms the volume
+is in EF 2.5; does **not** include token counts.
+
+#### Download full EF (stubbytree HTTPS)
+
+1. Clean the HTID for the path: replace `:` → `+`, `/` → `=` (usually a no-op).
+2. Split on the first `.`: `prefix` = library code (e.g. `uc1`), `rest` = remainder.
+3. `chars` = every 3rd character of `rest`, starting at index 0
+   (`rest[0]`, `rest[3]`, `rest[6]`, …). Example:
+   `nyp.33433070251792` → `chars=33759` →
+   `nyp/33759/nyp.33433070251792.json.bz2`.
+4. `GET https://data.analytics.hathitrust.org/features-2025.04/{prefix}/{chars}/{cleaned}.json.bz2`
+   (binary bzip2). Example Kuhn volume:
+   `…/features-2025.04/uc1/32350/uc1.31822031154305.json.bz2`.
+5. Decompress bz2 → JSON-LD. Schema: `metadata` (title, pubDate, …),
+   `features.pageCount`, `features.pages[]`. Each page has
+   `body.tokenPosCount`: `{ "<token>": { "<POS>": count, ... }, ... }`.
+
+**Do not** use rsync-only paths, pairtree layouts, or invented `/features/{htid}`
+URLs — those 404.
+
+#### Aggregate fingerprint (match Lib-Bot `analyze`)
+
+Over **body** `tokenPosCount` only (ignore header/footer):
+
+- Lowercase tokens; keep alphabetic tokens with length ≥ 3.
+- **Themes (`topThemes`, top 20):** POS in `{NN, NNS}`; drop this English stop
+  list: `the and a an to of it is was were be been being have has had do does did
+  in on at by for with from up out down into over under again about after before
+  as this that these those there here i you he she they we me him her them us my
+  your his its our their not no nor so than then too very can will would could
+  should may might must just only also said one two three who whom which what
+  when where why how all any both each few more most other some such own same`
+- **Names (`topNames`, top 15):** POS in `{NNP, NNPS}`; do **not** apply the stop
+  list.
+- Sum counts across pages; sort descending.
+
+Also set `title` / year from `metadata` (or metadata URL), `pageCount` from
+`features.pageCount`, `readUrl` =
+`https://babel.hathitrust.org/cgi/pt?id={htid}`.
 
 When successful, present:
 
 ```
-{ htid, title, year, pageCount, readUrl, rights?, topThemes[], topNames[] }
+{ htid, title, year, pageCount, readUrl, rights?, topThemes[{term,count}], topNames[{term,count}] }
 ```
 
 as a **vocabulary profile**, not a summary of read text — e.g. *"It's Kuhn's The
 Structure of Scientific Revolutions — its vocabulary centers on science,
-paradigms, theory, and research, and it discusses Newton, Lavoisier, Galileo, and
+paradigm, theory, and research, and it discusses Newton, Lavoisier, Galileo, and
 Einstein. It's in-copyright so we can't read it in full; that profile comes
 purely from word statistics."*
 

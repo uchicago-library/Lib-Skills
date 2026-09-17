@@ -18,7 +18,7 @@ executed by the agent via HTTP instead of local Python.
 
 **Dig deeper:**
 
-- [`DESIGN.md`](DESIGN.md) — markdown-HTTP vs scripts; fidelity bar; HTRC gap
+- [`DESIGN.md`](DESIGN.md) — markdown-HTTP vs scripts; fidelity bar; HTRC HTTP path
 - [`skills/catalog-search/SKILL.md`](skills/catalog-search/SKILL.md) — agent skill
 - [`skills/catalog-search/EXAMPLES.md`](skills/catalog-search/EXAMPLES.md) — demo tour
 
@@ -33,7 +33,7 @@ executed by the agent via HTTP instead of local Python.
 | Install | Copy / enable the skill markdown — no clone, no pip | `git clone` + `python3 -m venv` + `pip install` |
 | Fidelity bar | User-facing output ≈ scripts version (same badges, schema, honesty) | Source of truth for behavior; scripts guarantee consistency |
 | Token cost | Higher (agent reasons through HTTP) — acceptable | Lower (scripts normalize + probe) |
-| HTRC analyze | Conscious gap: Bib-API badge + `readUrl` yes; `topThemes`/`topNames` only if EF obtainable — never invent | `htrc-feature-reader` in venv |
+| HTRC analyze | Stubbytree HTTPS + POS aggregate when harness can bunzip off-context; else honest refusal — never invent | `htrc-feature-reader` in venv (convenience only) |
 
 **Lib-Bot remains the Code path.** Keep its git/Python/scripts intact. This pack
 is a separate product name (**Lib-Skills**) so Cowork/Chat users get presentation
@@ -100,6 +100,6 @@ Initial pack for Brad / Tucker review. Intended publish target:
 markdown-only harnesses.
 
 `catalog-search` v1 treats badges/annotations as **first-class**. Presentation
-target = Lib-Bot scripts output. Conscious parity gap: full HTRC Extracted
-Features fingerprinting (`topThemes` / `topNames`) requires tooling or a public
-EF fetch the harness may not have — never invent themes or names.
+target = Lib-Bot scripts output. HTRC fingerprints use stubbytree HTTPS (no
+venv); Cowork needs an off-context bunzip/aggregate step — otherwise honest
+refusal. Never invent themes or names.
