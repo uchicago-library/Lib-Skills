@@ -112,18 +112,21 @@ rank library-scan pattern `[a-z]\d{4}[a-z]` ahead of derivative ids.
 ## 4b. Find full text the badge missed — verify-first (Gutenberg / IA)
 
 **Ask:** "Does the library have *An Essay Towards a Philosophy of Education* by
-Charlotte Mason? I'd like to read it."
+Charlotte Mason?"
 
-Catalog may only hold a reprint with **no** full-text badge. Discovery returns
-**candidates to confirm**.
+(No “I’d like to read it” — users usually stop at the holdings question.)
+
+Catalog may only hold a reprint with **no** full-text badge. Because this is a
+**specific title + author** ask, still run findtext. Discovery returns
+**candidates to confirm** (do not claim the library “has” the Gutenberg copy).
 
 **Agent should:**
 
-1. Catalog search for the title/author (optional); note missing badge.
-2. HTTP discover: Gutendex `search` (surname + title tokens) + IA advancedsearch
-   (library scans only; skip community collections); apply author_matches +
-   title_overlap_ok; rank by confidence; present high Gutenberg and medium IA
-   to confirm.
+1. Catalog search for the title/author; present holdings + note missing badge.
+2. HTTP discover (same turn): Gutendex `search` (surname + title tokens) + IA
+   advancedsearch (library scans only; skip community collections); apply
+   author_matches + title_overlap_ok; rank by confidence; present high Gutenberg
+   and medium IA to confirm.
 3. After user confirms: pull Gutenberg plaintext (strip PG boilerplate); offer
    `readUrl` on `gutenberg.org/ebooks/{id}`.
 

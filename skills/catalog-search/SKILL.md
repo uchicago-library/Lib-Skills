@@ -32,6 +32,8 @@ exactly. Higher token use is fine.
 - "Tell me about the author of #2", "what else did they write?"
 - "Pull the full text of #1 and summarize it" / "…and find where it discusses X."
 - "The catalog only has a reprint — find free full text" (verify-first).
+- Specific-title holdings asks with no full-text badge → still run findtext
+  (users won’t usually add “I’d like to read it”).
 - "What is this in-copyright book about?" (HTRC fingerprint **only if** EF exist).
 - Biomedical topic evidence via PubMed (opt-in when clinical/biological).
 
@@ -363,8 +365,26 @@ the same `field[]` list, normalize, re-run OL probe, then pull.
 
 ### 4b — Find full text the badge missed (verify-first)
 
-Port of `enrichers/public_fulltext.py`. When the user wants full text and **no
-badge fired**, discover candidates — **never auto-claim**. Prefer Gutenberg.
+Port of `enrichers/public_fulltext.py`. Discover free full-text **candidates**
+when the eager OL→IA badge did **not** fire — **never auto-claim**. Prefer
+Gutenberg. Users rarely say “I’d like to read it”; do **not** wait for that
+phrase.
+
+**Run findtext (or at least offer / present candidates) when any of:**
+
+1. The user asked about a **specific titled work** (title + author, or a clear
+   unique title) — including plain holdings asks like “Does the library have
+   *X* by *Y*?” — and the top hit(s) have **no** full-text badge.
+2. The user explicitly wants full text / to read / summarize / quote a work
+   with no badge (reprint-only catalog copies are the common case).
+3. A search result is **clearly public-domain** (author life dates ending well
+   before today, or an obviously historical work) with no badge — offer
+   proactively: *“No IA badge on the catalog edition, but free text may be on
+   Project Gutenberg — want me to check?”* (or just check and present
+   candidates if the ask was already about that one work).
+
+**Skip** findtext for broad subject/author browse (“books on X”, “everything by
+Foucault”) unless the user picks a specific title afterward.
 
 1. Resolve title + author from user or catalog record
    (`GET …/api/v1/record` if given a record id)
