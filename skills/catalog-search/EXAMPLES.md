@@ -1,8 +1,10 @@
 # catalog-search — Example Queries (Lib-Skills)
 
-A tour of what the skill can do, for testing and demoing. Each example gives the
-natural-language **ask**, what the **agent should** do (HTTP steps), what it
-**shows**, and what to **look for**.
+> **For human testers** verifying this skill in Cowork/Chat — a manual demo tour, not agent instructions.
+
+
+Each example gives the natural-language **ask**, what the **agent should** do
+(HTTP steps), what it **shows**, and what to **look for**.
 
 ## Intent quick reference
 
@@ -151,7 +153,7 @@ as search-only, so I can't read the text."
    `htid=uc1.31822031154305` (or Bib-API join if only a catalog record).
 3. Optional: metadata
    `GET …/extracted-features/20250321/uc1.31822031154305` (`Accept: application/json`).
-4. Download EF bz2 via stubbytree HTTPS (SKILL §5):
+4. Download EF bz2 via stubbytree HTTPS (`references/htrc-ef.md`; see SKILL §5):
    `…/features-2025.04/uc1/32350/uc1.31822031154305.json.bz2` — decompress and
    aggregate **off-context** (tool/sandbox). Do not paste the whole JSON into
    chat.

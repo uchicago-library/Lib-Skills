@@ -17,43 +17,30 @@ description: >-
 
 # catalog-search (Lib-Skills)
 
-Search the UChicago Library catalog and progressively **enrich** the results
-with things the catalog record alone doesn't give the user. The point isn't just
-to return hits — it's to add value on top of them:
+Search the UChicago Library catalog and **enrich** beyond the record:
 
-- **WikiData** (inline, every top-N result): who the author is in one line, a few
-  of their notable works ("also wrote…"), and a VIAF link.
-- **Full text** (on demand, public-domain items): a badge advertises that the
-  complete OCR text is pullable from the Internet Archive; when the user asks,
-  pull it and **read / summarize / answer questions** about the actual book.
+- **WikiData** (inline, top-N): author one-liner, notable works, VIAF.
+- **Full text** (on demand, public-domain): IA badge; pull to read / summarize / Q&A.
 
-Covers and basic availability are *baseline* (already in the catalog) and are
-not this skill's job — enrichment means going **beyond** the record.
+Covers and basic availability are baseline catalog jobs — enrichment goes
+**beyond** the record.
 
-**Execution model:** You (the agent) perform the HTTP calls and normalize into
-the JSON schema below. There is **no Python / scripts / venv**. Follow this
-skill’s presentation rules: badges, `searchUrl` / `readUrl`, honesty rules, and
-result envelope as specified. Apply the heuristics below exactly. Higher token
-use is fine.
+**Execution:** You perform HTTP and normalize into the schema below. **No Python /
+scripts / venv.** Follow badges, `searchUrl` / `readUrl`, honesty, and envelope
+rules exactly. Higher token use is fine.
 
 ## When to use
 
-- "Find / search the library catalog for …", "does the library have …",
-  "books on \<topic\>", "\<title\> by \<author\>".
-- "Narrow that to books / to English / since 2015."
-- "Tell me about the author of #2", "what else did they write?"
-- "Pull the full text of #1 and summarize it" / "…and find where it discusses X."
-- "The catalog only has a reprint — find free full text" (verify-first).
-- Specific-title holdings asks with no full-text badge → still run findtext
-  (users won’t usually add “I’d like to read it”).
-- "What is this book about / what does it cover?" when full text is unavailable (HathiTrust search-only / in-copyright) — HTRC EF fingerprint via HTTP.
-- Biomedical / clinical / health "recent evidence" asks (e.g. type 2 diabetes
-  treatments, CRISPR, Alzheimer) → **this skill**: catalog subject search +
-  PubMed `topicEvidence` (catalog first, PubMed second). Do not skip to a
-  generic PubMed-only answer.
+- Catalog search / holdings / topic browse / title+author asks; filter by format,
+  language, year.
+- Author context ("who is #2?", "what else did they write?").
+- Full-text pull / summarize; verify-first findtext when badge missed (including
+  specific-title holdings asks — users rarely say “I’d like to read it”).
+- "What does this book cover?" when no public full text → HTRC EF via HTTP.
+- Biomedical / clinical "recent evidence" → catalog first, then PubMed
+  `topicEvidence` (do not skip to PubMed-only).
 
-Do **not** use this skill for live FOLIO checkout availability, or to claim full
-text for an item that didn't earn the badge (see *Honesty* below).
+Do **not** use for live FOLIO availability, or to claim full text without the badge.
 
 ## Config (baked defaults)
 
@@ -61,7 +48,6 @@ text for an item that didn't earn the badge (see *Honesty* below).
 |---|---|---|
 | `catalog_base` | `https://catalog.lib.uchicago.edu/vufind` | UChicago default |
 | `probe_depth_n` | `5` | Top-N results to annotate eagerly |
-| `contact_email` | *(optional)* | Include in User-Agent for public APIs when known |
 | `http_timeout` | ~20s | Soft; fail-soft on timeout |
 | `fulltext_timeout` | ~90s | For large OCR/plaintext pulls |
 
@@ -69,8 +55,7 @@ text for an item that didn't earn the badge (see *Honesty* below).
 `https://catalog.lib.uchicago.edu`). Permalink = `origin` + `recordPage` — *not*
 base + `recordPage` (`recordPage` already includes `/vufind`).
 
-**User-Agent:** send a descriptive agent string; if `contact_email` is set,
-include it (e.g. `Lib-Skills/1.0 (UChicago Library; mailto:…)`). Never invent
+**User-Agent:** descriptive string; optional contact mailto if known. Never invent
 catalog hits if the API is unreachable (403 / challenge HTML / network).
 
 **Inline enrichers (eager):** `wikidata`, `openlibrary_ia`.
@@ -439,12 +424,12 @@ Extracted Features (non-consumptive page-level token/POS counts — **not**
 readable text). Use when the user asks what a book covers / is about and there
 is no public full text (HathiTrust search-only, in-copyright, etc.).
 
-**No Python package.** Do **not** invent pairtree URLs or guess EF hosts. Use
-the stubbytree HTTPS recipe below. Prefer a harness **tool/sandbox** to download
-+ bunzip + aggregate **off-context**; only bring the tiny `topThemes` /
-`topNames` lists into the reply. If the harness cannot decompress/aggregate, say
-so honestly — still offer `readUrl` (+ Bib-API rights / metadata). **Never
-invent themes or names.**
+**Honesty / fail-soft:** Prefer a harness **tool/sandbox** to download + bunzip +
+aggregate **off-context**; only bring the tiny `topThemes` / `topNames` lists
+into the reply. Follow `references/htrc-ef.md` for stubbytree HTTPS download +
+POS aggregate; if the harness cannot bunzip/aggregate off-context, refuse
+honestly — still offer `readUrl` (+ Bib-API rights / metadata). **Never invent
+themes, names, pairtree URLs, or guess EF hosts.**
 
 **Getting `htid`:**
 
@@ -452,92 +437,30 @@ invent themes or names.**
 2. From user HathiTrust URL (`pt?id=` query param, or `hdl.handle.net/2027/<htid>`), or
 3. Catalog→Bib API join (same as badge) — honest miss ~7/8 → ask for HTID/URL
 
-Optional lightweight check (metadata only — **not** enough for themes):
-
-```
-GET https://data.analytics.hathitrust.org/extracted-features/20250321/{htid}
-Accept: application/json
-```
-
-Returns small JSON (`title`, `accessRights`, `numPages`, …). Confirms the volume
-is in EF 2.5; does **not** include token counts.
-
-#### Download full EF (stubbytree HTTPS)
-
-1. Clean the HTID for the path: replace `:` → `+`, `/` → `=` (usually a no-op).
-2. Split on the first `.`: `prefix` = library code (e.g. `uc1`), `rest` = remainder.
-3. `chars` = every 3rd character of `rest`, starting at index 0
-   (`rest[0]`, `rest[3]`, `rest[6]`, …). Example:
-   `nyp.33433070251792` → `chars=33759` →
-   `nyp/33759/nyp.33433070251792.json.bz2`.
-4. `GET https://data.analytics.hathitrust.org/features-2025.04/{prefix}/{chars}/{cleaned}.json.bz2`
-   (binary bzip2). Example Kuhn volume:
-   `…/features-2025.04/uc1/32350/uc1.31822031154305.json.bz2`.
-5. Decompress bz2 → JSON-LD. Schema: `metadata` (title, pubDate, …),
-   `features.pageCount`, `features.pages[]`. Each page has
-   `body.tokenPosCount`: `{ "<token>": { "<POS>": count, ... }, ... }`.
-
-**Do not** use rsync-only paths, pairtree layouts, or invented `/features/{htid}`
-URLs — those 404.
-
-#### Aggregate fingerprint as follows
-
-Over **body** `tokenPosCount` only (ignore header/footer):
-
-- Lowercase tokens; keep alphabetic tokens with length ≥ 3.
-- **Themes (`topThemes`, top 20):** POS in `{NN, NNS}`; drop this English stop
-  list: `the and a an to of it is was were be been being have has had do does did
-  in on at by for with from up out down into over under again about after before
-  as this that these those there here i you he she they we me him her them us my
-  your his its our their not no nor so than then too very can will would could
-  should may might must just only also said one two three who whom which what
-  when where why how all any both each few more most other some such own same`
-- **Names (`topNames`, top 15):** POS in `{NNP, NNPS}`; do **not** apply the stop
-  list.
-- Sum counts across pages; sort descending.
-
-Also set `title` / year from `metadata` (or metadata URL), `pageCount` from
-`features.pageCount`, `readUrl` =
-`https://babel.hathitrust.org/cgi/pt?id={htid}`.
-
-When successful, present:
+**Report shape** (vocabulary profile, not a summary of read text):
 
 ```
 { htid, title, year, pageCount, readUrl, rights?, topThemes[{term,count}], topNames[{term,count}] }
 ```
 
-as a **vocabulary profile**, not a summary of read text — e.g. *"It's Kuhn's The
-Structure of Scientific Revolutions — its vocabulary centers on science,
-paradigm, theory, and research, and it discusses Newton, Lavoisier, Galileo, and
-Einstein. It's in-copyright so we can't read it in full; that profile comes
-purely from word statistics."*
+Example tone: *"Vocabulary centers on science, paradigm, theory; names include
+Newton, Galileo. In-copyright — profile from word statistics only."*
 
 ---
 
 ## Notes & edge cases
 
-- **Zero results.** `resultCount: 0` → no invented hits; offer broaden / drop
-  filter / switch to `AllFields`.
-- **Author searches are broad.** "Tolkien" → J. R. R., Christopher, Simon;
-  use WikiData to disambiguate + permalinks.
-- **`format` is multi-valued.** `format:"Book"` vs `Print` vs `E-Resource`.
-- **Fail-soft.** One slow enrichment source never blocks search results.
-- **VPN / 403 / Anubis.** Catalog API may need campus network; tell the user;
-  don't fake holdings.
+- **Zero results** → no invented hits; offer broaden / drop filter / `AllFields`.
+- **Author searches are broad** — use WikiData + permalinks to disambiguate.
+- **`format` is multi-valued** (`Book` / `Print` / `E-Resource`).
+- **Fail-soft** — one slow enricher never blocks search results.
+- **VPN / 403 / Anubis** — catalog may need campus network; don't fake holdings.
 
 ---
 
 ## Output schema
 
-Top-level envelope:
-
-```
-{ query, type, resultCount,
-  searchUrl,
-  records: [ <normalized record> ],
-  facets?,
-  topicEvidence? }
-```
+Envelope: `{ query, type, resultCount, searchUrl, records[], facets?, topicEvidence? }`
 
 Normalized record:
 
@@ -557,27 +480,19 @@ Normalized record:
 }
 ```
 
-`topicEvidence?` (PubMed, set-level):
-
-```
-{ source:"PubMed", topic, totalArticles, recentReviews,
-  recentWindow, topMeSH[], sampleReviews[{pmid,title,year,url}],
-  searchUrl }
-```
+`topicEvidence?` (PubMed): `{ source:"PubMed", topic, totalArticles, recentReviews,
+recentWindow, topMeSH[], sampleReviews[{pmid,title,year,url}], searchUrl }`
 
 ---
 
 ## Principles
 
 - **Honesty.** Only state enrichment that is present. Full-text badge only for
-  verified public-domain scans (`ebook_access == public`). Don't promise full
-  text without the badge.
+  verified public-domain scans (`ebook_access == public`).
 - **Fail-soft.** Missing annotation ≠ failed search.
 - **Lean & on-demand.** Annotate top `N` only; never eager full-text across a set.
-- **Harness-neutral.** Fan out with “spawn a sub-agent” if needed; map to the
-  harness’s primitives. Prefer parallel HTTP for probes.
-- **Schema fidelity.** User-facing badges, links, and the result envelope must
-  match this skill’s schema even though execution is markdown-driven HTTP.
+- **Harness-neutral.** Prefer parallel HTTP for probes; map to harness primitives.
+- **Schema fidelity.** Badges, links, and the result envelope match this skill’s schema.
 
 ## Extending
 

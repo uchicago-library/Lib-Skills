@@ -22,30 +22,31 @@ Related (scripts / Code path): [Lib-Bot](https://github.com/uchicago-library/Lib
 
 - [`DESIGN.md`](DESIGN.md) — markdown-HTTP design; fidelity & honesty; HTRC HTTP path; VPN
 - [`skills/catalog-search/SKILL.md`](skills/catalog-search/SKILL.md) — agent skill
-- [`skills/catalog-search/EXAMPLES.md`](skills/catalog-search/EXAMPLES.md) — demo tour
+- [`skills/catalog-search/EXAMPLES.md`](skills/catalog-search/EXAMPLES.md) — human tester demo tour
 
 ---
 
 ## Install (Claude Cowork / Chat)
 
-1. Obtain this pack (clone or download once published as
-   `uchicago-library/Lib-Skills`).
+1. Get this pack from
+   [`uchicago-library/Lib-Skills`](https://github.com/uchicago-library/Lib-Skills).
 2. Zip the **`catalog-search`** folder (the directory that contains `SKILL.md` —
-   i.e. `skills/catalog-search/`).
-3. In Claude Cowork: **Customize → Skills → Upload zip**. Upload that zip so the
-   harness loads `SKILL.md`.
+   i.e. `skills/catalog-search/`). The folder name must match the skill `name`
+   (`catalog-search`).
+3. In Claude Cowork: **Customize → Skills → + → Create skill → Upload a skill**.
+   Upload that zip so the harness loads `SKILL.md` (and `references/` as needed).
 4. No Python, no venv, no `config.json` file is required. Defaults are baked into
    the skill:
 
    - **`catalog_base`:** `https://catalog.lib.uchicago.edu/vufind`
    - **`probe_depth_n`:** `5`
-   - **`contact_email`:** optional (add to User-Agent when calling public APIs)
 
 5. Talk to the agent in natural language — it follows
    [`skills/catalog-search/SKILL.md`](skills/catalog-search/SKILL.md).
 
-See [`EXAMPLES.md`](skills/catalog-search/EXAMPLES.md) for a full demo tour
-(asks + expected shows / look-fors).
+**`EXAMPLES.md` is for human testers** (manual demo tour). Claude does **not**
+load it as agent instructions — include it in the zip only if useful for humans.
+Claude uses `SKILL.md` (+ `references/`).
 
 ---
 
@@ -80,9 +81,9 @@ VPN / network and retry — **do not invent holdings**.
 
 ## Status
 
-Initial pack for Brad / Tucker review. Intended publish target:
-`uchicago-library/Lib-Skills` after approval (remote creation is separate).
+Published at [`uchicago-library/Lib-Skills`](https://github.com/uchicago-library/Lib-Skills).
+**`catalog-search` is ready for Cowork zip upload.**
 
-`catalog-search` v1 treats badges/annotations as **first-class**. HTRC
-fingerprints use stubbytree HTTPS (no venv); Cowork needs an off-context
-bunzip/aggregate step — otherwise honest refusal. Never invent themes or names.
+Badges/annotations are **first-class**. HTRC fingerprints use stubbytree HTTPS
+(no venv); Cowork needs an off-context bunzip/aggregate step — otherwise honest
+refusal. Never invent themes or names.

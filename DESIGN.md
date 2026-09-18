@@ -66,8 +66,10 @@ User-facing output must follow this pack’s schema and honesty rules:
 
 HTRC Extracted Features (EF) 2025.04 files are public over HTTPS at stubbytree
 paths under
-`https://data.analytics.hathitrust.org/features-2025.04/…/*.json.bz2`. Lib-Skills
-documents that recipe + POS aggregation in `SKILL.md` §5 (no Python package).
+`https://data.analytics.hathitrust.org/features-2025.04/…/*.json.bz2`. Detailed
+stubbytree download + POS aggregation live in
+`skills/catalog-search/references/htrc-ef.md`; `SKILL.md` §5 keeps when-to-use,
+htid resolution, honesty/fail-soft, and report shape.
 
 **Works in Cowork when** the harness can download bz2, decompress, and aggregate
 token/POS counts **off-context**. Chat-only / no sandbox → honest refusal +
@@ -91,6 +93,15 @@ WorldCat, OpenSyllabus, FOLIO live availability — out of scope.
 
 ---
 
+## EXAMPLES.md (human testers only)
+
+`skills/catalog-search/EXAMPLES.md` is a **manual demo tour for human testers**
+verifying the skill in Cowork/Chat. It is **not** agent instructions and is not
+required reading for Claude. Zip it with the skill only if useful for humans;
+Claude loads `SKILL.md` (+ `references/`).
+
+---
+
 ## Skill map
 
 | Concern | Lib-Skills section |
@@ -99,7 +110,7 @@ WorldCat, OpenSyllabus, FOLIO live availability — out of scope.
 | WikiData | SKILL §3a |
 | OL→IA badge + pull | SKILL §3b, §4 |
 | HathiTrust badge | SKILL §3c |
-| HTRC analyze | SKILL §5 (stubbytree HTTPS) |
+| HTRC analyze | SKILL §5 + `references/htrc-ef.md` |
 | PubMed | SKILL §3d |
 | Findtext | SKILL §4b |
 | Fulltext pull | SKILL §4 |
