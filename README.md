@@ -29,17 +29,10 @@ Defaults baked into the skill: `catalog_base`
 
 ## Catalog access / VPN
 
-The UChicago VuFind **Search & Record API** is IP-gated / challenge-gated
-(campus allowlist; off-box callers may see Anubis/bot-check HTML or `403`).
-Off-campus users typically need **VPN or campus network** for catalog search to
-return JSON.
-
-Enrichment sources (WikiData, OpenLibrary / Internet Archive, Project Gutenberg,
-PubMed, HathiTrust Bib API) are **public internet** and work without VPN.
-
-**This skill assumes the catalog API is reachable** when you use it. If a search
-returns `403`, challenge HTML, or non-JSON, tell the user to connect via campus
-VPN / network and retry — **do not invent holdings**.
+The UChicago VuFind **Search & Record API** is typically reachable only from
+campus or VPN (off-network callers may see a bot-check page or `403` instead of
+JSON). Enrichment sources (WikiData, OpenLibrary / Internet Archive, Project
+Gutenberg, PubMed, HathiTrust) are on the public internet and do not need VPN.
 
 ---
 
