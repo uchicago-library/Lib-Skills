@@ -2,8 +2,7 @@
 
 A tour of what the skill can do, for testing and demoing. Each example gives the
 natural-language **ask**, what the **agent should** do (HTTP steps), what it
-**shows**, and what to **look for**. Same scenarios as Lib-Bot EXAMPLES —
-Python CLI invocations replaced by agent HTTP behavior.
+**shows**, and what to **look for**.
 
 ## Intent quick reference
 
@@ -175,7 +174,7 @@ matches (~7/8), report clear failure and ask for HTID/URL.
 **Ask:** annotate Peloponnesian War with HTRC intent.
 
 **Agent should:** Title search + Bib-API probe on top-N; badge only where joined;
-same action label as Lib-Bot.
+use the content-analysis action label from `SKILL.md`.
 
 ---
 
@@ -252,5 +251,4 @@ PubMed topic block, optional HTRC badges — all fail-soft.
 - **IA (public domain) + HTRC (in-copyright)** are complementary when features
   are obtainable; Lib-Skills never invents HTRC themes.
 - Enrichment is **fail-soft and parallel**: one slow source never blocks a search.
-- **No Python required** — agent HTTP steps replace Lib-Bot scripts while aiming
-  for the same user-facing presentation.
+- **No Python required** — the agent follows the HTTP steps in `SKILL.md`.

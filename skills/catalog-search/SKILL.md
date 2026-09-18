@@ -31,10 +31,10 @@ Covers and basic availability are *baseline* (already in the catalog) and are
 not this skill's job — enrichment means going **beyond** the record.
 
 **Execution model:** You (the agent) perform the HTTP calls and normalize into
-the JSON schema below. There is **no Python / scripts / venv**. Match Lib-Bot
-scripts presentation: same badges, `searchUrl` / `readUrl`, honesty rules, and
-result envelope. Heuristics below are ported from Lib-Bot enrichers — follow them
-exactly. Higher token use is fine.
+the JSON schema below. There is **no Python / scripts / venv**. Follow this
+skill’s presentation rules: badges, `searchUrl` / `readUrl`, honesty rules, and
+result envelope as specified. Apply the heuristics below exactly. Higher token
+use is fine.
 
 ## When to use
 
@@ -127,9 +127,7 @@ Request facets to get counts so you can offer narrowing: *"9,911 are books,
 
 #### Normalize VuFind → record schema
 
-(from Lib-Bot `catalog_search.normalize`)
-
-From each raw record:
+Match this schema. From each raw record:
 
 - `id` ← `id`
 - `title` ← `title`
@@ -177,8 +175,6 @@ A failed/slow probe drops its annotation only — never break the search.
 
 #### 3a. WikiData (always-on inline)
 
-Port of `enrichers/wikidata.py`.
-
 1. Take primary author `original = authors[0]`.
 2. **`clean_author_name(original)`:**
    - Strip life dates: `,?\s*\d{3,4}\s*-\s*(?:\d{3,4})?\.?`
@@ -219,8 +215,6 @@ from the annotation.)
 
 #### 3b. OpenLibrary → IA full-text badge (always-on inline)
 
-Port of `enrichers/openlibrary_ia.py` probe.
-
 **High precision only:** badge iff OpenLibrary reports `ebook_access == "public"`
 with an `ia` list. Never badge on `borrowable` / `lendable` / restricted.
 
@@ -258,8 +252,6 @@ or say the word and I'll pull it to read/summarize."*
 
 #### 3c. Optional HathiTrust badge (user intent ≈ `--htrc`)
 
-Port of `enrichers/hathitrust.py` `probe` / `find_htids`.
-
 When the user asks for content-analysis availability, or you opt in for a demo:
 
 1. Build id list from record (≤10, deduped): `oclc:{n}` for each `identifiers.oclc`,
@@ -289,7 +281,7 @@ Honest miss rate ~7/8 for catalog→HT auto-join — absent badge is fine.
 
 #### 3d. Optional PubMed topic evidence (biomedical only; ≈ `--pubmed`)
 
-Port of `enrichers/pubmed.py`. Set-level (top of envelope), not per-record.
+Set-level (top of envelope), not per-record.
 
 **Heuristic:** disease, drug, organism, biological mechanism, clinical
 intervention → yes; primarily cultural/historical/artistic → skip entirely
@@ -343,7 +335,7 @@ Missing annotation = probe found nothing — **never invent**.
 Only when the user asks, and preferably when the full-text badge fired (or after
 confirmed findtext). Use `ocaid` from `actions[].params` / annotation.
 
-**Internet Archive** (port of `openlibrary_ia.fetch_fulltext`):
+**Internet Archive:**
 
 1. `GET https://archive.org/metadata/{ocaid}` → `files[]`
 2. Prefer file with `format == "DjVuTXT"`; else name ending `_djvu.txt`; else any
@@ -365,8 +357,7 @@ confirmed findtext). Use `ocaid` from `actions[].params` / annotation.
 **Re-resolve from catalog id:** `GET {catalog_base}/api/v1/record?id=<id>` with
 the same `field[]` list, normalize, re-run OL probe, then pull.
 
-**Project Gutenberg** (after findtext confirm; port of
-`public_fulltext.fetch_gutenberg_text`):
+**Project Gutenberg** (after findtext confirm):
 
 1. `GET https://gutendex.com/books/{id}` → pick `text/plain` URL preferring
    `utf-8`, skip `.zip`
@@ -380,10 +371,9 @@ the same `field[]` list, normalize, re-run OL probe, then pull.
 
 ### 4b — Find full text the badge missed (verify-first)
 
-Port of `enrichers/public_fulltext.py`. Discover free full-text **candidates**
-when the eager OL→IA badge did **not** fire — **never auto-claim**. Prefer
-Gutenberg. Users rarely say “I’d like to read it”; do **not** wait for that
-phrase.
+Discover free full-text **candidates** when the eager OL→IA badge did **not**
+fire — **never auto-claim**. Prefer Gutenberg. Users rarely say “I’d like to
+read it”; do **not** wait for that phrase.
 
 **Run findtext (or at least offer / present candidates) when any of:**
 
@@ -403,7 +393,7 @@ Foucault”) unless the user picks a specific title afterward.
 
 1. Resolve title + author from user or catalog record
    (`GET …/api/v1/record` if given a record id)
-2. Helpers (match the scripts):
+2. Helpers:
    - `surname_of`: last significant token of the part before comma (or last word)
    - `life_dates`: first `(\d{4})\s*-\s*(\d{4})?` in author heading
    - `title_tokens`: tokens length ≥ 4 excluding `{the,and,for,with,from,that,this}`
@@ -450,11 +440,11 @@ readable text). Use when the user asks what a book covers / is about and there
 is no public full text (HathiTrust search-only, in-copyright, etc.).
 
 **No Python package.** Do **not** invent pairtree URLs or guess EF hosts. Use
-the stubbytree HTTPS recipe below (same files Lib-Bot’s `htrc-feature-reader`
-would fetch). Prefer a harness **tool/sandbox** to download + bunzip + aggregate
-**off-context**; only bring the tiny `topThemes` / `topNames` lists into the
-reply. If the harness cannot decompress/aggregate, say so honestly — still offer
-`readUrl` (+ Bib-API rights / metadata). **Never invent themes or names.**
+the stubbytree HTTPS recipe below. Prefer a harness **tool/sandbox** to download
++ bunzip + aggregate **off-context**; only bring the tiny `topThemes` /
+`topNames` lists into the reply. If the harness cannot decompress/aggregate, say
+so honestly — still offer `readUrl` (+ Bib-API rights / metadata). **Never
+invent themes or names.**
 
 **Getting `htid`:**
 
@@ -490,7 +480,7 @@ is in EF 2.5; does **not** include token counts.
 **Do not** use rsync-only paths, pairtree layouts, or invented `/features/{htid}`
 URLs — those 404.
 
-#### Aggregate fingerprint (match Lib-Bot `analyze`)
+#### Aggregate fingerprint as follows
 
 Over **body** `tokenPosCount` only (ignore header/footer):
 
@@ -539,7 +529,7 @@ purely from word statistics."*
 
 ## Output schema
 
-Top-level envelope (match Lib-Bot scripts):
+Top-level envelope:
 
 ```
 { query, type, resultCount,
@@ -586,10 +576,9 @@ Normalized record:
 - **Lean & on-demand.** Annotate top `N` only; never eager full-text across a set.
 - **Harness-neutral.** Fan out with “spawn a sub-agent” if needed; map to the
   harness’s primitives. Prefer parallel HTTP for probes.
-- **Presentation parity.** User-facing badges, links, and schema should look like
-  the Lib-Bot scripts version even though execution is markdown-driven HTTP.
+- **Schema fidelity.** User-facing badges, links, and the result envelope must
+  match this skill’s schema even though execution is markdown-driven HTTP.
 
 ## Extending
 
 New sources = document probe/act HTTP steps here with the same honesty bar.
-Lib-Bot Python enrichers remain the reference implementation for edge cases.
